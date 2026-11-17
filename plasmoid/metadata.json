@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Id": "io.github.erastmorgan.vpntray",
+        "Name": "VPN Tray",
+        "Name[ru]": "VPN",
+        "Description": "VPN list, connect/disconnect, status, speed, kill switch",
+        "Description[ru]": "Список VPN, подключение, статус, скорость, kill switch",
+        "Icon": "network-vpn",
+        "Authors": [{ "Name": "erastmorgan" }],
+        "Category": "Online Services",
+        "License": "MIT",
+        "Version": "0.2.0",
+        "Website": "https://github.com/erastmorgan/vpn-tray",
+        "EnabledByDefault": true
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-NotificationArea": "true",
+    "X-Plasma-NotificationAreaCategory": "SystemServices"
+}

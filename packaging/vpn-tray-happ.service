@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 erastmorgan
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=Happ in the background for vpn-tray (window stays hidden, tray icon stays)
+After=graphical-session.target
+PartOf=graphical-session.target
+StartLimitIntervalSec=0
+
+[Service]
+# close the window Happ shows on start-up (it hides to its tray icon)
+ExecStartPre=-@BIN@/vpn-tray-hide-window Happ 30 --close-existing
+ExecStart=/opt/happ/bin/Happ
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+vendor/
+dist/
+*.plasmoid
+.idea/
+.vscode/

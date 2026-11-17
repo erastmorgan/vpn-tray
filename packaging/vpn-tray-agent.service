@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 erastmorgan
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=vpn-tray agent: keeps the chosen VPN up (auto-reconnect) and the kill switch in place
+After=graphical-session.target
+PartOf=graphical-session.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=@BIN@/vpn-tray-agent
+Restart=always
+RestartSec=3
+WatchdogSec=180
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=graphical-session.target

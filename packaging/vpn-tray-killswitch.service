@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 erastmorgan
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=vpn-tray kill switch: load saved nftables rules before the network comes up
+DefaultDependencies=no
+Before=network-pre.target
+Wants=network-pre.target
+After=local-fs.target
+ConditionPathExists=/etc/vpn-tray/killswitch.nft
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nft -f /etc/vpn-tray/killswitch.nft
+
+[Install]
+WantedBy=sysinit.target

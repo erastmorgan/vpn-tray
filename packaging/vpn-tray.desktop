@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 erastmorgan
+# SPDX-License-Identifier: MIT
+[Desktop Entry]
+Type=Application
+Name=VPN Tray
+Name[ru]=VPN в трее
+Comment=VPN list, connect/disconnect, status and speed
+Comment[ru]=Список VPN, подключение, статус и скорость
+Exec=sh -c "systemctl --user start vpn-tray.service; sleep 1; exec @BIN@/vpn-tray --show"
+Icon=network-vpn
+Terminal=false
+Categories=Network;Utility;
