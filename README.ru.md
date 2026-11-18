@@ -76,6 +76,7 @@ make test        # необязательно: юнит-тесты
 | запускаемые файлы | `~/.local/bin/vpn-tray{,-cli,-agent,-hide-window}` |
 | агент (авто-переподключение, kill switch, статус) | `~/.config/systemd/user/vpn-tray-agent.service` |
 | фоновый Happ (если Happ установлен) | `~/.config/systemd/user/vpn-tray-happ.service` |
+| правило KWin: окно Happ не забирает фокус (панель не закрывается) | `~/.config/kwinrulesrc` → `[vpn-tray-happ]` |
 | апплет Plasma 6, добавляется в трей | `~/.local/share/plasma/plasmoids/io.github.erastmorgan.vpntray` |
 | запасная иконка трея (не Plasma) | `~/.config/systemd/user/vpn-tray.service` |
 

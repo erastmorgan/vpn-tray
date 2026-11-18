@@ -73,6 +73,8 @@ if [[ -x /opt/happ/bin/Happ ]]; then
       && sed -i 's/^\[Preferences\]$/[Preferences]\nAdvancedSettings\\startMinimized=true/' ~/.config/Happ.conf \
       || printf '\n[Preferences]\nAdvancedSettings\\startMinimized=true\n' >> ~/.config/Happ.conf
   fi
+  # Happ's window must never take focus (it would close the open tray popup)
+  "$SRC/packaging/kwin-happ-rule.sh" add || true
 fi
 
 PLASMOID=0

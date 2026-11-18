@@ -69,9 +69,9 @@ PlasmoidItem {
         return (i === 0 ? n.toFixed(0) : n.toFixed(1)) + " " + u[i]
     }
     function fmtRate(n) { return fmtBytes(n) + "/с" }
-    function fmtDuration(since) {
+    function fmtDuration(since, now) {
         if (!since) return "—"
-        let s = Math.max(0, Math.floor(Date.now() / 1000 - since))
+        let s = Math.max(0, Math.floor((now || Date.now() / 1000) - since))
         const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
         s = s % 60
         const p = x => (x < 10 ? "0" : "") + x

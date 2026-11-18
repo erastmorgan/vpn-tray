@@ -72,6 +72,7 @@ make test        # optional: unit tests
 | launchers | `~/.local/bin/vpn-tray{,-cli,-agent,-hide-window}` |
 | agent (auto-reconnect, kill switch, status) | `~/.config/systemd/user/vpn-tray-agent.service` |
 | Happ in the background (if Happ is installed) | `~/.config/systemd/user/vpn-tray-happ.service` |
+| KWin rule: Happ's window never steals focus (keeps the popup open) | `~/.config/kwinrulesrc` → `[vpn-tray-happ]` |
 | Plasma 6 applet, added to the system tray | `~/.local/share/plasma/plasmoids/io.github.erastmorgan.vpntray` |
 | fallback tray icon (non-Plasma desktops) | `~/.config/systemd/user/vpn-tray.service` |
 

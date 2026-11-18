@@ -10,6 +10,7 @@ systemctl --user disable --now vpn-tray-agent.service vpn-tray.service vpn-tray-
 rm -f ~/.config/systemd/user/vpn-tray{,-agent,-happ}.service
 systemctl --user daemon-reload
 command -v kpackagetool6 >/dev/null && kpackagetool6 -t Plasma/Applet -r "$APPLET_ID" >/dev/null 2>&1
+"$(dirname "$(readlink -f "$0")")/packaging/kwin-happ-rule.sh" remove 2>/dev/null
 rm -f ~/.local/bin/vpn-tray{,-cli,-agent,-hide-window} ~/.local/share/applications/vpn-tray.desktop
 
 # kill switch off FIRST (otherwise the box stays without internet), then the root parts

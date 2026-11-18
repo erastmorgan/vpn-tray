@@ -12,7 +12,7 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 
 PlasmaExtras.ExpandableListItem {
-    id: item
+    id: vpnRow
 
     required property int index
     required property string vid
@@ -44,10 +44,10 @@ PlasmaExtras.ExpandableListItem {
     isDefault: connected
 
     defaultActionButtonAction: QQC2.Action {
-        enabled: !item.busyNow
-        text: item.connected ? i18n("Отключить") : i18n("Подключить")
-        icon.name: item.connected ? "network-disconnect-symbolic" : "network-connect-symbolic"
-        onTriggered: root.toggle(item.vpn)
+        enabled: !vpnRow.busyNow
+        text: vpnRow.connected ? i18n("Отключить") : i18n("Подключить")
+        icon.name: vpnRow.connected ? "network-disconnect-symbolic" : "network-connect-symbolic"
+        onTriggered: root.toggle(vpnRow.vpn)
     }
 
     contextualActions: [
@@ -55,8 +55,8 @@ PlasmaExtras.ExpandableListItem {
             text: i18n("Переименовать…")
             icon.name: "edit-rename"
             onTriggered: {
-                item.renaming = true
-                item.expand()
+                vpnRow.renaming = true
+                vpnRow.expand()
             }
         }
     ]
@@ -68,29 +68,29 @@ PlasmaExtras.ExpandableListItem {
             spacing: Kirigami.Units.smallSpacing
 
             RowLayout {
-                visible: item.renaming
+                visible: vpnRow.renaming
                 Layout.fillWidth: true
                 PlasmaComponents3.TextField {
                     id: nameField
                     Layout.fillWidth: true
-                    text: item.name
+                    text: vpnRow.name
                     placeholderText: i18n("Новое имя")
-                    Component.onCompleted: if (item.renaming) forceActiveFocus()
-                    onVisibleChanged: if (visible) { text = item.name; forceActiveFocus(); selectAll() }
+                    Component.onCompleted: if (vpnRow.renaming) forceActiveFocus()
+                    onVisibleChanged: if (visible) { text = vpnRow.name; forceActiveFocus(); selectAll() }
                     Keys.onReturnPressed: apply.clicked()
-                    Keys.onEscapePressed: item.renaming = false
+                    Keys.onEscapePressed: vpnRow.renaming = false
                 }
                 PlasmaComponents3.Button {
                     id: apply
                     icon.name: "dialog-ok-apply"
                     text: i18n("Сохранить")
-                    onClicked: { root.rename(item.vid, nameField.text); item.renaming = false }
+                    onClicked: { root.rename(vpnRow.vid, nameField.text); vpnRow.renaming = false }
                 }
                 PlasmaComponents3.ToolButton {
                     icon.name: "dialog-cancel"
                     display: PlasmaComponents3.AbstractButton.IconOnly
                     text: i18n("Отмена")
-                    onClicked: item.renaming = false
+                    onClicked: vpnRow.renaming = false
                 }
             }
 
@@ -98,39 +98,39 @@ PlasmaExtras.ExpandableListItem {
                 Layout.fillWidth: true
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Тип / протокол:")
-                    text: item.protocol || "—"
+                    text: vpnRow.protocol || "—"
                     wrapMode: Text.WordWrap
                     Layout.fillWidth: true
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Сервер:")
-                    text: root.server(item.vpn)
+                    text: root.server(vpnRow.vpn)
                     wrapMode: Text.WrapAnywhere
                     Layout.fillWidth: true
                     textFormat: Text.PlainText
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Скорость ↓ / ↑:")
-                    visible: item.connected
-                    text: root.fmtRate(item.rx_rate) + " / " + root.fmtRate(item.tx_rate)
+                    visible: vpnRow.connected
+                    text: root.fmtRate(vpnRow.rx_rate) + " / " + root.fmtRate(vpnRow.tx_rate)
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Трафик ↓ / ↑:")
-                    visible: item.connected
-                    text: root.fmtBytes(item.rx_bytes) + " / " + root.fmtBytes(item.tx_bytes)
+                    visible: vpnRow.connected
+                    text: root.fmtBytes(vpnRow.rx_bytes) + " / " + root.fmtBytes(vpnRow.tx_bytes)
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Подключён:")
-                    visible: item.connected
-                    text: root.fmtDuration(item.since)
+                    visible: vpnRow.connected
+                    text: root.fmtDuration(vpnRow.since, root.snapshot.ts)   // snapshot.ts ticks every second
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Интерфейс:")
-                    text: (item.iface || "—") + (item.full_tunnel ? "" : i18n(" (split-tunnel)"))
+                    text: (vpnRow.iface || "—") + (vpnRow.full_tunnel ? "" : i18n(" (split-tunnel)"))
                 }
                 PlasmaComponents3.Label {
                     Kirigami.FormData.label: i18n("Авто-переподключение:")
-                    text: root.snapshot.desired === item.vid ? i18n("да") : i18n("нет")
+                    text: root.snapshot.desired === vpnRow.vid ? i18n("да") : i18n("нет")
                 }
             }
         }

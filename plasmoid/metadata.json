@@ -9,7 +9,7 @@
         "Authors": [{ "Name": "erastmorgan" }],
         "Category": "Online Services",
         "License": "MIT",
-        "Version": "0.2.0",
+        "Version": "0.2.1",
         "Website": "https://github.com/erastmorgan/vpn-tray",
         "EnabledByDefault": true
     },

@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.2.1] — 2026-11-18
+
+### Fixed
+- Applet: the expanded details of a VPN (speed, traffic, server, protocol, interface, uptime)
+  were empty / never updated — the delegate id `item` was shadowed by `Loader.item` inside the
+  expanded view. The uptime now ticks every second.
+- Applet: the popup closed by itself on Connect / Disconnect involving Happ. Happ's window took
+  focus for ~20 ms before being closed; a KWin window rule (`vpn-tray-happ`, focus stealing
+  prevention "Extreme", added by `install.sh`, removed by `uninstall.sh`) stops that.
+
 ## [0.2.0] — 2026-11-17
 
 ### Added
