@@ -111,6 +111,7 @@ vpn-tray-cli set happ:default user_protocol "VLESS / mKCP"   # label shown as ty
 vpn-tray-cli killswitch status|on|off
 vpn-tray-cli extip                      # external IP
 vpn-tray-cli popup                      # open the applet popup (bind it to a global shortcut)
+vpn-tray-cli happ-import work < link.txt # add a Happ subscription as VPN "happ:work"
 vpn-tray-cli agent                      # agent heartbeat
 journalctl --user -u vpn-tray-agent -f  # agent log
 ```
@@ -120,8 +121,12 @@ journalctl --user -u vpn-tray-agent -f  # agent log
 * **WireGuard / AmneziaWG:** put `wgN.conf` into `/etc/wireguard/` (or `awgN.conf` into
   `/etc/amnezia/amneziawg/`) → it appears within 5 minutes (or *Details… → Refresh list*).
 * **OpenVPN etc.:** `nmcli connection import type openvpn file client.ovpn`.
-* **Happ (Xray):** import the subscription / link into Happ once (`/opt/happ/bin/Happ 'happ://…'`);
-  vpn-tray then controls the server selected in Happ.
+* **Happ (Xray):** `vpn-tray-cli happ-import NAME < link.txt` — every subscription becomes its own
+  VPN `happ:NAME`. The link is read from stdin (it never shows up in `ps` or shell history).
+  Happ has no command to choose a server, so vpn-tray keeps a snapshot of Happ's state per VPN
+  (`~/.config/vpn-tray/happ/NAME/`) and swaps it in when you switch (Happ restarts in the background,
+  ~5 s). The first import also saves the server already selected in Happ as `happ:default`.
+  Without any import, `happ:default` is simply whatever server is selected in Happ.
 * **New VPN type:** add `vpntray/backends/<name>.py` with a `Backend` subclass
   (`discover / connect / disconnect / status`) decorated with `@register`, import it in
   `vpntray/backends/__init__.py`, and allow any new root action in `helper/vpn-tray-helper`.
@@ -162,7 +167,7 @@ DNS from root only; everything else is rejected.
 ## Tests
 
 ```bash
-make test   # 20 unit tests: manager, exclusivity, rollback, agent self-healing, kill switch logic …
+make test   # 25 unit tests: manager, exclusivity, rollback, agent self-healing, kill switch logic, Happ snapshots …
 make e2e    # LIVE: really switches VPNs, breaks things on purpose, then restores the initial state
 ```
 
@@ -182,6 +187,8 @@ killed), Happ's window kept hidden, NetworkManager backend, rename persistence.
 * **`awg-quick` sometimes fails with `RTNETLINK answers: File exists`:** another hook (often a
   NetworkManager dispatcher script) adds the same route concurrently. vpn-tray retries; remove the
   duplicate hook to make switching instant.
+* **Happ crashes when a subscription link is opened while Happ is running** (seen with 4.7–4.8 and
+  links that carry a routing profile): use `vpn-tray-cli happ-import`, it imports on a cold start.
 * **Applet not in the tray:** System Tray Settings → Entries → *VPN* → *Always shown*, or re-run
   `install.sh`.
 

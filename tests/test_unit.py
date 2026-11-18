@@ -190,6 +190,69 @@ class AgentTest(unittest.TestCase):
         self.assertIn("fake:a", self.fake.up)
 
 
+class HappStatesTest(unittest.TestCase):
+    """Several Happ VPNs = snapshots of Happ's state; selection keys rewritten in Happ.conf."""
+
+    def setUp(self):
+        from vpntray.backends import happ
+        self.h = happ
+        self.tmp = Path(tempfile.mkdtemp())
+        self._saved = (happ.HAPP_CONF, happ.STATES_DIR)
+        happ.HAPP_CONF = self.tmp / "Happ.conf"
+        happ.STATES_DIR = self.tmp / "states"
+        happ.HAPP_CONF.write_text("[General]\nbld=1\n[Preferences]\nAdvancedSettings\\startMinimized=true\n"
+                                  "lastServer=1\nlastServerGuid=g-alpha\nlastServerName=Alpha\n"
+                                  "windowX=5\n[Vacancy]\nx=1\n")
+        for slug, guid, name in (("default", "g-alpha", "Alpha"), ("beta", "g-beta", "Beta")):
+            d = happ.STATES_DIR / slug
+            d.mkdir(parents=True)
+            (d / "subs.db").write_bytes(b"db-" + slug.encode())
+            (d / "selection.ini").write_text(f"lastServer=2\nlastServerGuid={guid}\nlastServerName={name}\n"
+                                             f"lastServerHost={slug}.example\nlastServerPort=8390\n")
+
+    def tearDown(self):
+        self.h.HAPP_CONF, self.h.STATES_DIR = self._saved
+
+    def test_selection_rewrite_keeps_other_settings(self):
+        self.h._write_conf_selection((self.h.STATES_DIR / "beta" / "selection.ini").read_text().splitlines())
+        text = self.h.HAPP_CONF.read_text()
+        conf = read_happ_conf(self.h.HAPP_CONF)
+        self.assertEqual(conf["lastServerGuid"], "g-beta")
+        self.assertEqual(conf["lastServerName"], "Beta")
+        self.assertEqual(text.count("lastServerGuid="), 1)
+        for keep in ("bld=1", "startMinimized=true", "windowX=5", "[Vacancy]"):
+            self.assertIn(keep, text)
+        # selection keys stay in [Preferences]
+        self.assertLess(text.index("[Preferences]"), text.index("lastServerGuid="))
+        self.assertLess(text.index("lastServerGuid="), text.index("[Vacancy]"))
+
+    def test_active_state_follows_happ_conf(self):
+        self.assertEqual(self.h.list_states(), ["beta", "default"])
+        self.assertEqual(self.h.active_state(), "default")
+        self.h._write_conf_selection(["lastServerGuid=g-beta"])
+        self.assertEqual(self.h.active_state(), "beta")
+
+    def test_discover_one_profile_per_snapshot(self):
+        ps = {p.id: p for p in self.h.HappBackend().discover()}
+        self.assertEqual(set(ps), {"happ:default", "happ:beta"})
+        self.assertEqual(ps["happ:beta"].params["state"], "beta")
+        self.assertIn("Beta", ps["happ:beta"].name)
+
+    def test_inactive_snapshot_is_disconnected(self):
+        b = self.h.HappBackend()
+        p = [x for x in b.discover() if x.id == "happ:beta"][0]
+        self.assertFalse(b._is_active(p))
+        st = b.status(p)
+        self.assertEqual(st.state, State.DISCONNECTED)
+        self.assertEqual(st.server_host, "beta.example")   # from its own snapshot, not Happ.conf
+
+    def test_import_rejects_bad_input(self):
+        with self.assertRaises(ValueError):
+            self.h.import_link("Bad Name", "happ://x")
+        with self.assertRaises(ValueError):
+            self.h.import_link("ok", "vless://not-a-subscription")
+
+
 class HelpersTest(unittest.TestCase):
     def test_split_hostport(self):
         self.assertEqual(split_hostport("203.0.113.7:51820"), ("203.0.113.7", 51820))

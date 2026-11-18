@@ -12,6 +12,8 @@
   vpn-tray-cli agent                   (agent heartbeat)
   vpn-tray-cli extip                   (external IP as seen from the internet)
   vpn-tray-cli popup                   (open the Plasma applet popup — bind it to a shortcut)
+  vpn-tray-cli happ-import NAME < link  (add a Happ subscription as its own VPN "happ:NAME";
+                                        the link is read from stdin so it never shows up in ps)
 """
 from __future__ import annotations
 
@@ -56,6 +58,9 @@ def main(argv=None):
     sub.add_parser("agent")
     sub.add_parser("extip")
     sub.add_parser("popup")
+    hi = sub.add_parser("happ-import")
+    hi.add_argument("name", help="short id: lowercase latin, digits, - and _")
+    hi.add_argument("--file", help="read the link from this file instead of stdin")
     a = ap.parse_args(argv)
     if a.cmd == "popup":
         (runtime_dir() / "popup").touch()   # the applet polls for it and opens its popup
@@ -71,6 +76,20 @@ def main(argv=None):
                 continue
         print("недоступен", file=sys.stderr)
         return 1
+
+    if a.cmd == "happ-import":
+        from .backends import happ
+        link = open(a.file).read() if a.file else sys.stdin.read()
+        m = Manager()
+        try:
+            with m.lock:
+                happ.import_link(a.name, link)
+            m.discover()
+            print(f"готово: VPN happ:{a.name} — {m.get('happ:' + a.name).name}")
+        except Exception as e:
+            print(f"ошибка: {e}", file=sys.stderr)
+            return 1
+        return 0
 
     m = Manager()
     if a.cmd != "agent":

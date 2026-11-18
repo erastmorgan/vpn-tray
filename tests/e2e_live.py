@@ -122,8 +122,9 @@ def visible_windows(cls="happ"):
 class WindowWatch:
     """Traces a GUI client's windows through KWin while a switch is in progress.
 
-    Records how long every window of the class stayed mapped (added -> removed). Our KWin script
-    must close each one within a few frames and never leave one open."""
+    Records how long every window of the class stayed visible (added -> made transparent or
+    removed, whichever comes first). Our KWin script must hide each one within a few frames and
+    never leave one open."""
 
     def __init__(self, cls="happ"):
         self.cls, self.durations, self.left_open = cls, [], 0
@@ -134,9 +135,10 @@ class WindowWatch:
         js = runtime_dir() / f"{self.name}.js"
         js.write_text(
             "function isT(w){ return w && String(w.resourceClass).toLowerCase() === %r; }\n"
-            "workspace.windowAdded.connect(function(w){ if (isT(w)) print(%r + ' added ' + Date.now()); });\n"
+            "workspace.windowAdded.connect(function(w){ if (!isT(w)) return; print(%r + ' added ' + Date.now());\n"
+            "  w.opacityChanged.connect(function(){ if (w.opacity === 0) print(%r + ' hidden ' + Date.now()); }); });\n"
             "workspace.windowRemoved.connect(function(w){ if (isT(w)) print(%r + ' removed ' + Date.now()); });\n"
-            % (self.cls, self.tag, self.tag))
+            % (self.cls, self.tag, self.tag, self.tag))
         sh("busctl", "--user", "call", "org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "loadScript",
            "ss", str(js), self.name)
         sh("busctl", "--user", "call", "org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "start")
@@ -153,6 +155,8 @@ class WindowWatch:
             _, ev, ts = ln.split()
             if ev == "added":
                 added = int(ts)
+            elif ev == "removed" and added is None:
+                continue        # already counted when it was made transparent
             elif added is not None:
                 self.durations.append((int(ts) - added) / 1000)
                 added = None
