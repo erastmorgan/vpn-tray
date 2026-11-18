@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [0.3.0] — 2026-11-18
+
+### Added
+- Several VPNs through Happ: `vpn-tray-cli happ-import NAME` (link on stdin) adds a subscription as
+  its own VPN `happ:NAME`. Happ cannot select a server from outside, so vpn-tray keeps a snapshot of
+  Happ's state per VPN (`~/.config/vpn-tray/happ/NAME/`) and swaps it in on connect (Happ restarts in
+  the background, ~5 s). The server already selected in Happ is kept as `happ:default`.
+
+### Fixed
+- Importing a subscription with a routing profile into a running Happ crashes Happ (4.7.2, 4.8.1)
+  and the subscription is lost; `happ-import` imports on a cold start and saves via `happ://close`.
+
 ## [0.2.1] — 2026-11-18
 
 ### Fixed

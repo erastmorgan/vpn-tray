@@ -119,6 +119,7 @@ vpn-tray-cli set happ:default user_protocol "VLESS / mKCP"   # подпись т
 vpn-tray-cli killswitch status|on|off
 vpn-tray-cli extip                      # внешний IP
 vpn-tray-cli popup                      # открыть панель апплета (повесь на глобальное сочетание клавиш)
+vpn-tray-cli happ-import work < link.txt # добавить подписку Happ как VPN «happ:work»
 vpn-tray-cli agent                      # heartbeat агента
 journalctl --user -u vpn-tray-agent -f  # лог агента
 ```
@@ -129,8 +130,12 @@ journalctl --user -u vpn-tray-agent -f  # лог агента
   `/etc/amnezia/amneziawg/`). VPN появится в течение 5 минут или сразу после
   *Подробнее… → Обновить список*.
 * **OpenVPN и другие:** `nmcli connection import type openvpn file client.ovpn`.
-* **Happ (Xray):** один раз импортируй подписку или ссылку в Happ (`/opt/happ/bin/Happ 'happ://…'`).
-  Дальше vpn-tray управляет сервером, выбранным в Happ.
+* **Happ (Xray):** `vpn-tray-cli happ-import ИМЯ < ссылка.txt`. Каждая подписка становится отдельным
+  VPN `happ:ИМЯ`. Ссылка читается из stdin, поэтому не видна в `ps` и истории shell.
+  У Happ нет команды выбора сервера, поэтому vpn-tray хранит снимок состояния Happ для каждого VPN
+  (`~/.config/vpn-tray/happ/ИМЯ/`) и подкладывает нужный при переключении. Happ при этом
+  перезапускается в фоне, это ~5 с. При первом импорте сервер, уже выбранный в Happ, сохраняется как
+  `happ:default`. Без импорта `happ:default` — это просто сервер, выбранный в Happ.
 * **Новый тип VPN:**
   1. Создай `vpntray/backends/<имя>.py` с наследником `Backend`
      (`discover / connect / disconnect / status`) и декоратором `@register`.
@@ -174,7 +179,7 @@ journalctl --user -u vpn-tray-agent -f  # лог агента
 ## Тесты
 
 ```bash
-make test   # 20 юнит-тестов: менеджер, взаимоисключаемость, откат, самовосстановление агента, логика kill switch…
+make test   # 25 юнит-тестов: менеджер, взаимоисключаемость, откат, самовосстановление агента, логика kill switch, снимки Happ…
 make e2e    # ЖИВОЙ: реально переключает VPN, специально ломает, потом возвращает исходное состояние
 ```
 
@@ -199,6 +204,9 @@ make e2e    # ЖИВОЙ: реально переключает VPN, специ�
 * **`awg-quick` иногда падает с `RTNETLINK answers: File exists`.** Другой хук (часто
   dispatcher-скрипт NetworkManager) одновременно добавляет тот же маршрут. vpn-tray повторит попытку;
   если убрать дублирующий хук, переключение будет мгновенным.
+* **Happ падает, если открыть ссылку подписки при запущенном Happ.** Так бывает в версиях 4.7–4.8 со
+  ссылками, в которых есть профиль маршрутизации. Используй `vpn-tray-cli happ-import`: он
+  импортирует при холодном старте Happ.
 * **Апплета нет в трее.** Настройки системного трея → Элементы → *VPN* → *Всегда показывать*,
   или запусти `install.sh` ещё раз.
 

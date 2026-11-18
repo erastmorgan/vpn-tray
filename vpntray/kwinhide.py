@@ -33,8 +33,11 @@ if (!%(close_existing)s) {
 function handle(w) {
     if (Date.now() > until || !isTarget(w) || preexisting.has(w.internalId.toString())) return;
     print("vpntray-hide: closing " + w.caption);
-    // NB: do not minimise — a minimised Qt Quick window stops rendering and Happ then stalls
-    // on the deeplink for ~40 s. Closing makes it hide to its tray icon right away.
+    // Invisible at once (compositor side, the app keeps rendering), then closed. NB: do not
+    // minimise — a minimised Qt Quick window stops rendering and Happ then stalls on the deeplink
+    // for ~40 s. Closing makes it hide to its tray icon; a freshly started Happ may take a few
+    // hundred ms to react, the zero opacity covers that.
+    w.opacity = 0;
     w.closeWindow();
 }
 for (const w of workspace.windowList()) if (%(close_existing)s) handle(w);
